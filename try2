@@ -1,0 +1,260 @@
+#!/bin/bash
+
+# set rgx variable with integer regex pattern
+rgx='^[0-9]+$'
+
+# set args variable with all aruments
+args=$@
+
+# this variable is used to retry incorrect command in while command.
+try_number2=1
+
+
+
+if [[ ! -z $args ]]; then   #check that try command has arguments
+
+   for i in $@;do #for in all arguments
+
+	if [[ $1 == "-i" ]];then # 1st argument must be ' -i '
+		if [[ ! $2 =~ $rgx ]];then  #check that 2nd argument is integer
+			echo "when use -i , you should use integer after -i"
+			exit 1
+		else
+                        if [[ $2 -gt 100 ]];then #check interval no more than 100
+                                echo "interval must be between 0 and 100"
+                                exit 1
+                        else
+                                try_interval=$2
+                        fi
+			
+
+			if [[ $3 == "-n" ]];then  
+				if [[ ! $4 =~ $rgx ]];then	
+					echo "when use -n , you should use integer after -n"
+	                                exit 1
+				else
+        	                        if [[ $4 -gt 100 ]];then #check number no more than 100
+	                                        echo "number argument must be between 0 and 100"
+                	                        exit 1
+                        	        else
+                                	        try_number=$4
+	                                fi
+
+					if [[ -z $5 ]];then #check that 5th argument is not null
+						echo "you should enter a COMMAND"
+						exit 1
+					elif [[ $5 =~ $rgx ]];then #check that 5th argument NOT number
+						echo "The command cannot be numeric"
+						exit 1
+                                        elif [[ $5 =~ ^-(.*) ]];then #check that 5th argument Not start with dash
+                                                echo "you should enter correct COMMAND"
+                                                exit 1
+					else 
+						shift 4 #if arguments 1 to 4 are OK, shift 4 to ramove them
+						command=$@ #because of previous step,all arguments is equal to desired COMMAND
+						
+						while true; do	#repeat while exit 0 OR exit 1 in end					
+
+							$command	
+							cmdResult=$? #save exit code of command to prevent mistake due to changes of exit code 
+							try_number2=$((try_number2+1)) #increment my counter to exit while
+							if [[ $cmdResult -eq 0 ]]; then	
+								exit 0
+							else
+								if [[ $try_number2 -le $try_number ]];then #check while counter
+									sleep $try_interval
+									continue
+								else
+									echo "oh! Sorry ,your command not found :(" > /dev/stderr #redirect error to stderr
+									exit 1
+								fi
+							
+							fi						
+						done	
+
+					fi
+				fi
+			elif [[ ! $3 =~ $rgx && ! $3 =~ ^-(.*) ]]; then #check if Number is not entered and 3th arg should be consider as COMMAND
+
+		                if [[ ! -z $TRY_NUMBER ]]; then #check exist variable $TRY_NUMBER
+					if [[ ! $TRY_NUMBER =~ $rgx ]];then #check variable $TRY_NUMBER must be integer
+						echo "TRY_NUMBER variable must be a number"					
+						exit 1
+					else
+						if [[ $TRY_NUMBER  -gt 100 ]]; then #check variable $TRY_NUMBER no greater than 100
+							echo "TRY_NUMBER variable is more than 100 and must be between 0 and 100"
+							exit 1
+						else
+				                        try_number=$TRY_NUMBER
+						fi
+					fi
+		                else
+		                        try_number=12
+		                fi
+
+		
+		               command=$@
+		
+		                while true; do  #repeat while exit 0 OR exit 1 in end
+
+		                        $command
+		                        cmdResult=$? #save exit code of command to prevent mistake due to changes of exit code
+		                        try_number2=$((try_number2+1)) #increment my counter to exit while
+		                        if [[ $cmdResult -eq 0 ]]; then
+		                                exit 0
+		                        else
+		                                if [[ $try_number2 -le $try_number ]];then
+		                                        sleep $try_interval
+                		                        continue
+		                                else
+		                                        echo "oh! Sorry ,your command not found :(" > /dev/stderr
+		                                        exit 1
+		                                fi
+		
+		                        fi
+		                done
+
+
+
+
+		        else
+
+		                echo "Command can not be start with NUMBER or '-' Character "
+				exit 1
+			fi
+		fi
+	elif [[ $1 == '-n' ]]; then # check if -i parameter not entered and only -i is exists
+		if [[ ! $2 =~ $rgx ]];then  #check that 2nd argument is integer
+                        echo "when use -n , you should use integer after -n"
+                        exit 1
+		else
+		
+			if [[ ! -z $TRY_INTERVAL ]]; then
+
+				 if [[ ! $TRY_INTERVAL =~ $rgx ]];then
+                                         echo "TRY_INTERVAL variable must be a number"
+                                         exit 1
+                                 else
+                                         if [[ $TRY_INTERVAL  -gt 100 ]]; then
+                                                 echo "TRY_INTERVAL variable is more than 100 and must be between 0 and 100"
+                                                 exit 1
+                                         else
+                                                 try_interval=$TRY_INTERVAL
+                                         fi
+                                 fi
+			else
+				try_interval=5
+			fi						
+	
+			try_number=$2
+	                if [[ -z $3 ]];then #check that 3th argument is not null
+	                        echo "you should enter a COMMAND"
+	                        exit 1
+	                elif [[ $3 =~ $rgx ]];then
+	                        echo "The command cannot be numeric"
+	                        exit 1
+	                elif [[ $3 =~ ^-(.*) ]];then
+	                        echo "you should enter correct COMMAND"
+	                        exit 1
+	                else
+	                        shift 2 #if arguments 1 to 2 are OK, shift 2 to ramove them
+	                        command=$@ #because of previous step,all arguments is equal to desired COMMAND
+	
+	                        while true; do  #repeat while exit 0 OR exit 1 in end
+	
+	                                $command
+	                                cmdResult=$? #save exit code of command to prevent mistake due to changes of exit code
+	                                try_number2=$((try_number2+1)) #increment my counter to exit while
+	                                if [[ $cmdResult -eq 0 ]]; then
+	                                        exit 0
+	                                else
+	                                        if [[ $try_number2 -le $try_number ]];then
+	                                                sleep $try_interval
+	                                                continue
+	                                        else
+	                                                echo "oh! Sorry ,your command not found :(" > /dev/stderr
+	                                                exit 1
+	                                        fi
+	
+	                                fi
+	                        done
+	
+	                fi
+
+		fi
+
+	elif [[ ! $1 =~ $rgx && ! $1 =~ ^-(.*) ]]; then # check situation that only COMMAND is entered
+
+                if [[ ! -z $TRY_INTERVAL ]]; then
+                         if [[ ! $TRY_INTERVAL =~ $rgx ]];then
+                                  echo "TRY_INTERVAL variable must be a number"
+                                  exit 1
+                          else
+                                  if [[ $TRY_INTERVAL  -gt 100 ]]; then
+                                          echo "TRY_INTERVAL variable is more than 100 and must be between 0 and 100"
+                                          exit 1
+                                  else
+                                          try_interval=$TRY_INTERVAL
+                                  fi
+                          fi
+
+                else
+        	        try_interval=5
+                fi
+
+                if [[ ! -z $TRY_NUMBER ]]; then
+
+                          if [[ ! $TRY_NUMBER =~ $rgx ]];then
+                                  echo "TRY_NUMBER variable must be a number"
+                                  exit 1
+                          else
+                                  if [[ $TRY_NUMBER  -gt 100 ]]; then
+                                          echo "TRY_NUMBER variable is more than 100 and must be between 0 and 100"
+                                          exit 1
+                                  else
+                                          try_number=$TRY_NUMBER
+                                  fi
+                          fi
+
+                else
+                        try_number=12
+                fi
+
+
+               command=$@ 
+
+                while true; do  #repeat while exit 0 OR exit 1 in end
+
+                        $command
+                        cmdResult=$? #save exit code of command to prevent mistake due to changes of exit code
+                        try_number2=$((try_number2+1)) #increment my counter to exit while
+                        if [[ $cmdResult -eq 0 ]]; then
+                                exit 0
+                        else
+                                if [[ $try_number2 -le $try_number ]];then
+                                        sleep $try_interval
+                                        continue
+                                else
+                                        echo "oh! Sorry ,your command not found :(" > /dev/stderr
+                                        exit 1
+                                fi
+
+                        fi
+                done
+
+
+
+
+	else
+
+		echo "Command can not be start with NUMBER or '-' Character "
+		exit 1
+
+	fi
+
+  done
+else
+	echo "you should enter at least COMMAND argument"
+	exit 1
+fi
+ 
