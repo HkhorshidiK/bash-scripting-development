@@ -85,6 +85,6 @@ if [[ ! -z $args ]]; then   #check that try command has arguments
 
 	done
 else
-	echo "you should enter at least COMMAND argument"
+	echo "Correct Format is try -i INTERVAL -n NUMBER COMMAND"
 fi
  
